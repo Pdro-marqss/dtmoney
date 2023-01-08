@@ -10,11 +10,21 @@ interface Transaction {
     createdAt: string;
 }
 
+// Copia a interface de Transactions mas omite o id e createdAt
+type TransactionInput = Omit<Transaction, 'id' | 'createdAt'>;
+
 interface TransactionsProviderProps {
     children: ReactNode;
 }
 
-export const TransactionsContext = createContext<Transaction[]>([]);
+interface TransasctionsContextData {
+    transactions: Transaction[];
+    createTransaction: (Transaction: TransactionInput) => void;
+}
+
+export const TransactionsContext = createContext<TransasctionsContextData>(
+    {} as TransasctionsContextData
+);
 
 export function TransactionsProvider({ children }: TransactionsProviderProps) {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -24,8 +34,12 @@ export function TransactionsProvider({ children }: TransactionsProviderProps) {
             .then(response => setTransactions(response.data.transactions))
     }, []);
 
+    function createTransaction(transaction: TransactionInput) {
+        api.post('/transactions', transaction);
+    }
+
     return (
-        <TransactionsContext.Provider value={transactions}>
+        <TransactionsContext.Provider value={{ transactions, createTransaction }}>
             {children}
         </TransactionsContext.Provider>
     );
